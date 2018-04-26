@@ -1,0 +1,9 @@
+[Unit]
+Description=As an AP for connection
+
+[Service]
+Type=idle
+ExecStart=/usr/bin/create_ap wlan0 eth0 megapi
+
+[Install]
+WantedBy=multi-user.target
