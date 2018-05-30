@@ -10,10 +10,15 @@ from megapi import *
 def onRead(a):
     socket_child[0].sendall("ultrasonic:"+str(a))
 
+def onGas(a):
+    socket_child[0].sendall("gas:"+str(a))
+
+def onPir(a):
+    socket_child[0].sendall("pir:"+str(a))
+
 socket_child = []
 
 class Handler(BaseRequestHandler):
-    ProcessListVideo = []
     ProcessListSensor = []
     def onRead1(a):
         print str(a)
@@ -27,28 +32,27 @@ class Handler(BaseRequestHandler):
             except socket.error, e:
                 print e
             if len(data)>0:
-                if 'video' in data:
-                    port = data.split(':')[1]
-                    cmd = "raspivid -t 9999999 -o - | nc %s %s" % (address,port)
-                    print port
-                    print cmd
-                    global child
-                    child = subprocess.Popen(cmd,shell=True)
-                    ret = child.poll()
-                    if ret:
-                        child.kill()
-                    self.ProcessListVideo.append(child)
                 if 'motor' in data:
                     cmd = data.split(":")[1]
                     if 'left' in cmd:
+                        bot.motorRun(1,0)
+                        bot.motorRun(2,30)
                         print cmd
                     if 'right' in cmd:
+                        bot.motorRun(1,30)
+                        bot.motorRun(2,0)
                         print cmd
                     if 'forward' in cmd:
+                        bot.motorRun(1,30)
+                        bot.motorRun(2,30)
                         print cmd
                     if 'back' in cmd:
+                        bot.motorRun(1,-30)
+                        bot.motorRun(2,-30)
                         print cmd
                     if 'stop' in cmd:
+                        bot.motorRun(1,0)
+                        bot.motorRun(2,0)
                         print cmd
                 if 'sensor' in data:
                     cmd = data.split(":")[1]
@@ -61,10 +65,26 @@ class Handler(BaseRequestHandler):
                         else:
                             self.ProcessListSensor.append(pid)
                             print pid
+                    elif 'gas' in cmd:
+                        pid = os.fork()
+                        if pid == 0:
+                            while 1:
+                                sleep(0.1)
+                                bot.gasSensorRead(7,onGas)
+                        else:
+                            self.ProcessListSensor.append(pid)
+                            print pid
+                    elif 'pir' in cmd:
+                        pid = os.fork()
+                        if pid == 0:
+                            while 1:
+                                sleep(0.1)
+                                bot.pirMotionSensorRead(8,onPir)
+                        else:
+                            self.ProcessListSensor.append(pid)
+                            print pid
             else:
                 print 'close'
-                for i in self.ProcessListVideo:
-                    i.kill()
                 for i in self.ProcessListSensor:
                     os.kill(i,signal.SIGKILL)
                 for i in socket_child:
