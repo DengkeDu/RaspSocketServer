@@ -1,6 +1,6 @@
 import socket
 
-HOST = '' # you ip address
+HOST = '192.168.1.14' # you ip address
 PORT = 8001
 ADDR = (HOST,PORT)
 
@@ -15,13 +15,25 @@ except socket.error as msg:
 while True:
     print "1: [motor:left]"
     print "2: [sensor:ultrasonic]"
+    print "3: [sensor:gas]"
+    print "4: [sensor:pir]"
     print "9: exit"
     args = input()
     if args == 1:
         s.send("motor:left")
     if args == 2:
-        s.send("[sensor:ultrasonic]")
+        s.send("sensor:ultrasonic")
 	while True:
+            data = s.recv(1024)
+            print data
+    if args == 3:
+        s.send("sensor:gas")
+        while True:
+            data = s.recv(1024)
+            print data
+    if args == 4:
+        s.send("sensor:pir")
+        while True:
             data = s.recv(1024)
             print data
     if args == 9:
